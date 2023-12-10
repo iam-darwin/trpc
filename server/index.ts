@@ -1,40 +1,27 @@
-import { router, publicProcedure } from "./trpc";
-import { z } from "zod";
+import { router } from "./trpc";
 import { createHTTPServer } from "@trpc/server/adapters/standalone";
+import { dbConnect } from "./config/db";
+import { createContext } from "./trpc";
+import {  UserRouter} from "./routers/user"
+import { TodoRouter } from "./routers/todo";
 
-const inputType = z.object({
-  title: z.string(),
-  description: z.string().min(10),
-});
+
+dbConnect();
+
 
 const appRouter = router({
-  
-  
-  createTodo: publicProcedure.input(inputType).mutation(async (opts) => {
-    const data = opts.input.title;
-    console.log("username context " + opts.ctx.username);
-    
-    return {
-      id: "1",
-      title: opts.input.title,
-    };
-  }),
-});
+    userRouter:UserRouter,
+    todoRouter:TodoRouter
+})
+
+export type AppRouter = typeof appRouter;
 
 
 const server = createHTTPServer({
   router: appRouter,
-  createContext(opts){
-    let headers=opts.req.headers["authorization"]
-    console.log(headers);
-    
-    //jwt verify
-  return{
-      username:"123",
- }
-  }
+  createContext
 });
 
 server.listen(3000);
 
-export type AppRouter = typeof appRouter;
+
